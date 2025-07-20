@@ -51,13 +51,26 @@
   </div>
   <div id="powerups"></div>
   <div style="position:relative;">
-    <canvas id="game" width="480" height="360"></canvas>
+    <canvas id="game" width="480" height="800"></canvas>
     <div id="countdown" class="countdown hidden">3</div>
   </div>
   <footer>HTML5 Canvas • Touch + Tastiera • Power-up • Audio Retro • © Demo</footer>
 <script>
+/**************** GRAB DOM ****************/
+const game=document.getElementById('game');
+const msg=document.getElementById('msg');
+const scoreEl=document.getElementById('score');
+const livesEl=document.getElementById('lives');
+const levelEl=document.getElementById('level');
+const high=document.getElementById('high');
+const speed=document.getElementById('speed');
+const audioToggle=document.getElementById('audioToggle');
+const audioState=document.getElementById('audioState');
+const countdownEl=document.getElementById('countdown');
+
 /**************** CONFIG ****************/ 
-const BASE_WIDTH=480, BASE_HEIGHT=360; const ctx=game.getContext('2d');
+const BASE_WIDTH=480, BASE_HEIGHT=800; // canvas più rettangolare (stile smartphone portrait)
+const ctx=game.getContext('2d');
 let W=game.width,H=game.height;
 const BRICK_ROWS=8, BRICK_COLS=14; const BRICK_W=28, BRICK_H=12, BRICK_GAP=2;
 const PAD_W_BASE=72, PAD_H=10; const BALL_R=4;
@@ -111,8 +124,8 @@ function resetBalls(){ balls=[{x:W/2,y:paddle.y-12,vx:(Math.random()<.5?-1:1)*(L
 function initLevel(){ awaitingServe=true; countdownValue=COUNTDOWN_START; hideCountdown(); genPalette(); buildBricks(); paddle.w= PAD_W_BASE * Math.max(.8,1 - (level-1)*0.05); paddle.x=(W-paddle.w)/2; resetBalls(); globalSpeedMultiplier=1.0; updateSpeedDisplay(); message(`Livello ${level} pronto. Premi SPAZIO o tocca per countdown.`); renderActivePowerups(); }
 /**************** COUNTDOWN ****************/
 function startCountdown(){ if(!awaitingServe) return; awaitingServe=false; countdownValue=COUNTDOWN_START; showCountdown(countdownValue); const step=()=>{ if(paused){ countdownTimer=setTimeout(step,500); return; } if(countdownValue>1){ countdownValue--; showCountdown(countdownValue); countdownTimer=setTimeout(step,1000); } else { showCountdown('GO'); setTimeout(hideCountdown,600); launchBalls(); message(''); } }; step(); }
-function showCountdown(val){ const el=document.getElementById('countdown'); el.textContent=val; el.classList.remove('hidden'); }
-function hideCountdown(){ const el=document.getElementById('countdown'); el.classList.add('hidden'); }
+function showCountdown(val){ countdownEl.textContent=val; countdownEl.classList.remove('hidden'); }
+function hideCountdown(){ countdownEl.classList.add('hidden'); }
 function launchBalls(){ balls.forEach(b=> b.stuck=false); }
 /**************** MESSAGE ****************/
 function message(t){ msg.innerHTML=t?`<span class="flash">${t}</span>`:''; }
@@ -154,7 +167,7 @@ function update(dt){ if(!running||paused) return; // paddle movement
  });
  // bricks
  bricks.forEach(br=>{ balls.forEach(b=>{ if(br.hp>0 && b.x>br.x && b.x<br.x+br.w && b.y-b.r<br.y+br.h && b.y+b.r>br.y){ // collision
-    const prevVy=b.vy; if(!b.pierce){ b.vy*=-1; } br.hp=0; br.flash=.25; score+=10; spawnParticles(b.x,b.y,br.color); sfxBrick(); if(Math.random()<POWERUP_CHANCE) spawnPowerup(br.x+br.w/2, br.y+br.h/2); if(!b.pierce){ // slight speed bump
+    if(!b.pierce){ b.vy*=-1; } br.hp=0; br.flash=.25; score+=10; spawnParticles(b.x,b.y,br.color); sfxBrick(); if(Math.random()<POWERUP_CHANCE) spawnPowerup(br.x+br.w/2, br.y+br.h/2); if(!b.pierce){ // slight speed bump
       b.vx*=1.04; b.vy*=1.04; } else { b.pierce=false; }
   }}); });
  bricks=bricks.filter(br=> br.hp>0 || br.flash>0 ); bricks.forEach(br=> br.flash=Math.max(0, br.flash-dt));
@@ -194,7 +207,7 @@ function restartGame(){ score=0;lives=3;level=1;running=true;activePowerups={};p
 /**************** RESIZE ****************/
 function resizeCanvas(){ const availableW=Math.min(window.innerWidth-16, 920); const scale=Math.min( availableW/BASE_WIDTH, (window.innerHeight-160)/BASE_HEIGHT ); game.style.width=(BASE_WIDTH*scale|0)+'px'; game.style.height=(BASE_HEIGHT*scale|0)+'px'; } window.addEventListener('resize',resizeCanvas); resizeCanvas();
 /**************** STARTUP ****************/
-const scoreEl=document.getElementById('score'); const livesEl=document.getElementById('lives'); const levelEl=document.getElementById('level'); const high=document.getElementById('high'); updateSpeedDisplay(); genPalette(); initLevel(); updateHUD();
+updateSpeedDisplay(); genPalette(); initLevel(); updateHUD();
 </script>
 </body>
 </html>
